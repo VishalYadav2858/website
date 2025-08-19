@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SOS Link — Enhanced</title>
+<meta name="theme-color" content="#b71c1c"/>
+
+<style>
+/* ==========  COLOURS  ========== */
+:root{
+  --bg:#0f172a;          /* slate-900  */
+  --panel:#111827ee;     /* gray-900   */
+  --muted:#94a3b8;       /* slate-400  */
+  --text:#e5e7eb;        /* gray-200   */
+  --brand:#ef4444;       /* red-500    */
+  --brand-dark:#b91c1c;  /* red-700    */
+  --accent:#2563eb;      /* blue-600   */
+  --ok:#22c55e;          /* green-500  */
+  --warn:#f59e0b;        /* amber-500  */
+  --card:#0b1226;        /* deep       */
+  --ring:0 0 0 2px rgba(37,99,235,.35);
+  --critical:#dc2626;    /* red-600    */
+  --high:#ea580c;        /* orange-600 */
+  --medium:#ca8a04;      /* yellow-600 */
+  --low:#16a34a;         /* green-600  */
+}
+/* ==========  RESET  ========== */
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%,#1f2937,transparent),
+    radial-gradient(900px 600px at 110% 10%,#111827,transparent),
+    var(--bg);
+  color:var(--text);
+}
+
+/* ==========  HEADER  ========== */
+header{
+  position:sticky;top:0;z-index:5;
+  backdrop-filter:saturate(140%) blur(8px);
+  background:linear-gradient(0deg,#111827d9,#111827f7);
+  border-bottom:1px solid #1f2937;
+  padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo{
+  width:42px;height:42px;
+  display:grid;place-items:center;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+  box-shadow:0 10px 24px rgba(239,68,68,.35)
+}
+h1{font-size:20px}
+.tag{font-size:12px;color:var(--muted)}
+nav{display:flex;gap:8px}
+button.tab{
+  border:1px solid #1f2937;background:#0b1226;color:#cbd5e1;
+  padding:10px 14px;border-radius:12px;cursor:pointer
+}
+button.tab.active{
+  background:linear-gradient(135deg,#0f172a,#0b1226);
+  border-color:#334155;box-shadow:var(--ring)
+}
+
+/* ==========  CONNECTION STATUS  ========== */
+.connection-status{
+  position:fixed;top:20px;right:20px;z-index:10;
+  padding:8px 12px;border-radius:8px;font-size:12px;
+  transition:all 0.3s ease;
+}
+.connection-status.online{background:var(--ok);color:white;}
+.connection-status.offline{background:var(--critical);color:white;}
+.connection-status.syncing{background:var(--warn);color:white;}
+
+/* ==========  MAIN LAYOUT  ========== */
+main{
+  width:100%;padding:22px 10px;
+  display:flex;flex-direction:column;align-items:center
+}
+.grid{
+  width:100%;
+  max-width:1300px;               /* pleasant limit on ultra-wide screens   */
+  display:flex;flex-direction:column;gap:24px;
+}
+
+/* ==========  CARD  ========== */
+.card{
+  width:100%;
+  background:linear-gradient(180deg,#0b1226ee,#0b1226f6);
+  border:1px solid #1f2937;border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  padding:22px
+}
+.card h2{font-size:18px;margin-bottom:10px}
+.sub{color:#a5b4fc;font-size:12px}
+
+/* ==========  FORM & INPUTS  ========== */
+.form{display:grid;gap:14px}
+.row{display:grid;gap:12px}
+@media(min-width:640px){.row{grid-template-columns:1fr 1fr}}
+input,textarea{
+  background:#0b1226;color:#e5e7eb;
+  border:1px solid #243041;border-radius:12px;
+  padding:12px;outline:none
+}
+input:focus,textarea:focus{box-shadow:var(--ring);border-color:#334155}
+textarea{min-height:110px;resize:vertical}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  border:1px solid #243041;background:#0b1226;color:#e5e7eb;
+  padding:10px 14px;border-radius:12px;cursor:pointer
+}
+.btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand-dark));border-color:transparent}
+.btn.ok{background:linear-gradient(135deg,#16a34a,#15803d);border-color:transparent}
+.btn.warn{background:linear-gradient(135deg,#f59e0b,#d97706);border-color:transparent}
+.btn.ghost{background:transparent}
+
+.muted{color:var(--muted)}
+
+/* ==========  KPI  ========== */
+.kpis{display:flex;gap:10px;flex-wrap:wrap}
+.kpi{
+  flex:1 1 140px;background:#0b1226;border:1px solid #1f2937;
+  border-radius:14px;padding:12px
+}
+.kpi .n{font-size:22px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+
+/* ==========  LISTS  ========== */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.split>div{display:flex;flex-direction:column}
+.list{flex:1 1 auto;display:grid;gap:10px;min-height:220px}
+.item{
+  background:linear-gradient(180deg,#0f172a,#0b1226);
+  border:1px solid #1f2937;border-radius:14px;padding:12px;
+  position:relative;
+}
+.item.critical{border-color:var(--critical);border-width:2px;}
+.item.high{border-color:var(--high);border-width:2px;}
+.item.medium{border-color:var(--medium);}
+.item.low{border-color:var(--low);}
+
+.meta{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#cbd5e1}
+.badge{padding:3px 8px;border-radius:999px;border:1px solid #334155;background:#0b1226}
+.badge.ok{border-color:#166534;color:#86efac}
+.badge.warn{border-color:#92400e;color:#fcd34d}
+.badge.pending{border-color:#334155;color:#93c5fd}
+
+.badge.critical{border-color:var(--critical);color:#fca5a5;background:rgba(220,38,38,.1)}
+.badge.high{border-color:var(--high);color:#fdba74;background:rgba(234,88,12,.1)}
+.badge.medium{border-color:var(--medium);color:#fde047;background:rgba(202,138,4,.1)}
+.badge.low{border-color:var(--low);color:#86efac;background:rgba(22,163,74,.1)}
+
+.badge.medical{border-color:#dc2626;color:#fca5a5;background:rgba(220,38,38,.1)}
+.badge.food{border-color:#16a34a;color:#86efac;background:rgba(22,163,74,.1)}
+.badge.shelter{border-color:#2563eb;color:#93c5fd;background:rgba(37,99,235,.1)}
+.badge.trapped{border-color:#ea580c;color:#fdba74;background:rgba(234,88,12,.1)}
+.badge.other{border-color:#6b7280;color:#d1d5db;background:rgba(107,114,128,.1)}
+
+.priority-indicator{
+  position:absolute;top:12px;right:12px;
+  width:8px;height:8px;border-radius:50%;
+}
+.priority-indicator.critical{background:var(--critical);}
+.priority-indicator.high{background:var(--high);}
+.priority-indicator.medium{background:var(--medium);}
+.priority-indicator.low{background:var(--low);}
+
+.maplink{font-size:12px}
+.empty{color:var(--muted);text-align:center;padding:18px}
+
+/* ==========  QUEUE STATUS  ========== */
+.queue-status{
+  margin:10px 0;padding:10px;border-radius:8px;
+  background:rgba(234,88,12,.1);border:1px solid #ea580c;
+  font-size:12px;color:#fdba74;
+}
+
+/* ==========  FOOTER  ========== */
+footer{padding:18px;text-align:center;color:#94a3b8}
+</style>
+</head>
+
+<body>
+<div id="connectionStatus" class="connection-status online">🟢 Online</div>
+
+<header>
+  <div class="brand">
+    <div class="logo">🚨</div>
+    <div>
+      <h1>SOS Link</h1>
+      <div class="tag">AI-Powered Emergency Response • Offline-First</div>
+    </div>
+  </div>
+
+  <nav>
+    <button class="tab active" data-tab="victim">Victim Portal</button>
+    <button class="tab" data-tab="rescuer">Rescuer Portal</button>
+  </nav>
+</header>
+
+<main>
+  <div class="grid">
+
+    <!-- =================  VICTIM  ================= -->
+    <section id="victim" class="card">
+      <h2>Victim Portal</h2>
+      <div class="sub">All fields are required. Works offline - requests will be sent when connection returns.</div>
+
+      <div id="queueStatus" class="queue-status" style="display:none;">
+        <strong>📡 Connection lost:</strong> Your request will be queued and sent automatically when connection returns.
+      </div>
+
+      <form id="sosForm" class="form" autocomplete="off" novalidate>
+        <div class="row">
+          <input id="name" placeholder="Your name" required />
+          <input id="phone" inputmode="tel" placeholder="10-digit phone" required
+                 pattern="\\d{10}" minlength="10" maxlength="10" />
+        </div>
+
+        <textarea id="message" placeholder="Describe your emergency… (be specific: injuries, children, elderly, etc.)" required></textarea>
+
+        <input id="coords" placeholder="Lat, Long (auto)" readonly required />
+
+        <div class="actions">
+          <button type="button" class="btn" id="detectBtn">📍 Detect Location</button>
+          <button type="submit" class="btn primary">Send SOS</button>
+          <button type="button" class="btn ghost" id="clearForm">Clear</button>
+        </div>
+        <div id="locStatus" class="muted"></div>
+      </form>
+    </section>
+
+    <!-- =================  RESCUER  ================= -->
+    <section id="rescuer" class="card" hidden>
+      <h2>Rescuer Portal</h2>
+
+      <div class="kpis">
+        <div class="kpi"><div class="n" id="kpiTotal">0</div><div class="l">Total Requests</div></div>
+        <div class="kpi"><div class="n" id="kpiPending">0</div><div class="l">Pending</div></div>
+        <div class="kpi"><div class="n" id="kpiResolved">0</div><div class="l">Resolved</div></div>
+        <div class="kpi"><div class="n" id="kpiCritical">0</div><div class="l">Critical</div></div>
+      </div>
+
+      <div class="searchbar" style="display:flex;gap:10px;margin:10px 0;flex-wrap:wrap">
+        <input id="search" placeholder="Search by name, location or text…"/>
+        <button class="btn" id="resetSearch">Reset</button>
+        <select id="categoryFilter" class="btn" style="background:#0b1226;border:1px solid #243041">
+          <option value="">All Categories</option>
+          <option value="medical">🏥 Medical</option>
+          <option value="food">🍞 Food</option>
+          <option value="shelter">🏠 Shelter</option>
+          <option value="trapped">🚧 Trapped</option>
+          <option value="other">❓ Other</option>
+        </select>
+        <select id="priorityFilter" class="btn" style="background:#0b1226;border:1px solid #243041">
+          <option value="">All Priorities</option>
+          <option value="critical">🔴 Critical</option>
+          <option value="high">🟠 High</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+      </div>
+
+      <div class="split">
+        <div>
+          <h3 style="margin:6px 0 10px">Pending Requests <span style="color:var(--muted);font-size:12px;">(AI-sorted by priority)</span></h3>
+          <div id="pendingList" class="list"></div>
+        </div>
+
+        <div>
+          <h3 style="margin:6px 0 10px">Resolved Requests</h3>
+          <div id="resolvedList" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <small>Enhanced with AI prioritization, auto-categorization, and offline resilience. Works on 2G/3G networks.</small>
+</footer>
+
+<script>
+/* =======  LOCAL-STORAGE HELPERS  ======= */
+const KEY = 'sos.requests.v4';
+const QUEUE_KEY = 'sos.queue.v4';
+const load = () => JSON.parse(localStorage.getItem(KEY)||'[]');
+const save = arr => localStorage.setItem(KEY,JSON.stringify(arr));
+const loadQueue = () => JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');
+const saveQueue = arr => localStorage.setItem(QUEUE_KEY,JSON.stringify(arr));
+
+let sosRequests = load();
+let requestQueue = loadQueue();
+
+/* =======  AI CATEGORIZATION & PRIORITIZATION  ======= */
+const PRIORITY_KEYWORDS = {
+  critical: ['bleeding', 'blood', 'unconscious', 'not breathing', 'heart attack', 'stroke', 'overdose', 'severe pain', 'dying', 'death', 'emergency', 'urgent', 'help me', 'please help'],
+  high: ['child', 'children', 'baby', 'infant', 'elderly', 'disabled', 'pregnant', 'injury', 'injured', 'hurt', 'pain', 'medical', 'accident', 'trapped', 'fire', 'smoke'],
+  medium: ['sick', 'fever', 'lost', 'stranded', 'broken', 'stuck', 'need help', 'assistance'],
+  low: ['information', 'question', 'minor', 'small']
+};
+
+const CATEGORY_KEYWORDS = {
+  medical: ['bleeding', 'blood', 'injury', 'hurt', 'pain', 'sick', 'fever', 'unconscious', 'heart attack', 'stroke', 'overdose', 'medical', 'hospital', 'doctor', 'medicine', 'broken bone', 'fracture'],
+  food: ['hungry', 'food', 'water', 'thirsty', 'starving', 'drink', 'meal', 'eat', 'nutrition', 'supplies'],
+  shelter: ['cold', 'hot', 'weather', 'roof', 'homeless', 'shelter', 'house', 'building', 'protection', 'warmth'],
+  trapped: ['trapped', 'stuck', 'locked', 'can\'t move', 'debris', 'collapsed', 'cave', 'elevator', 'basement', 'underground'],
+  other: []
+};
+
+function analyzeRequest(message) {
+  const text = message.toLowerCase();
+  let priority = 'low';
+  let category = 'other';
+  let score = 0;
+
+  // Calculate priority score
+  for (const [level, keywords] of Object.entries(PRIORITY_KEYWORDS)) {
+    const matches = keywords.filter(keyword => text.includes(keyword)).length;
+    if (matches > 0) {
+      const levelScore = {critical: 4, high: 3, medium: 2, low: 1}[level] || 1;
+      if (levelScore > score) {
+        priority = level;
+        score = levelScore + matches; // More keyword matches = higher priority
+      }
+    }
+  }
+
+  // Determine category
+  let maxMatches = 0;
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (cat === 'other') continue;
+    const matches = keywords.filter(keyword => text.includes(keyword)).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      category = cat;
+    }
+  }
+
+  return { priority, category, score };
+}
+
+function getCategoryIcon(category) {
+  const icons = {
+    medical: '🏥',
+    food: '🍞',
+    shelter: '🏠',
+    trapped: '🚧',
+    other: '❓'
+  };
+  return icons[category] || '❓';
+}
+
+function getPriorityIcon(priority) {
+  const icons = {
+    critical: '🔴',
+    high: '🟠',
+    medium: '🟡',
+    low: '🟢'
+  };
+  return icons[priority] || '🟢';
+}
+
+/* =======  CONNECTIVITY MANAGEMENT  ======= */
+let isOnline = navigator.onLine;
+let syncInProgress = false;
+
+function updateConnectionStatus() {
+  const statusEl = document.getElementById('connectionStatus');
+  const queueStatusEl = document.getElementById('queueStatus');
+  
+  if (syncInProgress) {
+    statusEl.className = 'connection-status syncing';
+    statusEl.textContent = '🔄 Syncing...';
+  } else if (isOnline) {
+    statusEl.className = 'connection-status online';
+    statusEl.textContent = '🟢 Online';
+    queueStatusEl.style.display = 'none';
+  } else {
+    statusEl.className = 'connection-status offline';
+    statusEl.textContent = '🔴 Offline';
+    if (requestQueue.length > 0) {
+      queueStatusEl.style.display = 'block';
+    }
+  }
+}
+
+async function syncQueue() {
+  if (syncInProgress || requestQueue.length === 0 || !isOnline) return;
+  
+  syncInProgress = true;
+  updateConnectionStatus();
+  
+  try {
+    // Process queued requests
+    const processed = [];
+    for (const queuedRequest of requestQueue) {
+      // In a real app, you'd send to a server here
+      // For this demo, we just add to local storage
+      sosRequests.unshift(queuedRequest);
+      processed.push(queuedRequest);
+    }
+    
+    if (processed.length > 0) {
+      save(sosRequests);
+      requestQueue = [];
+      saveQueue(requestQueue);
+      
+      // Show success notification
+      alert(`✅ ${processed.length} queued request${processed.length > 1 ? 's' : ''} synced successfully!`);
+    }
+  } catch (error) {
+    console.error('Sync failed:', error);
+  } finally {
+    syncInProgress = false;
+    updateConnectionStatus();
+  }
+}
+
+// Connection event listeners
+window.addEventListener('online', () => {
+  isOnline = true;
+  updateConnectionStatus();
+  syncQueue();
+});
+
+window.addEventListener('offline', () => {
+  isOnline = false;
+  updateConnectionStatus();
+});
+
+// Initialize connection status
+updateConnectionStatus();
+
+/* =======  TAB SWITCHING  ======= */
+document.querySelectorAll('button.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('button.tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('victim').hidden = tab!=='victim';
+    document.getElementById('rescuer').hidden = tab!=='rescuer';
+    if(tab==='rescuer') renderLists();
+  });
+});
+
+/* =======  GEOLOCATION  ======= */
+async function detectLocation(){
+  const status = document.getElementById('locStatus');
+  status.textContent='Detecting location…';
+
+  if(!('geolocation' in navigator)){
+    status.textContent='Geolocation not supported on this device.';
+    return;
+  }
+
+  const opts={enableHighAccuracy:true,timeout:8000,maximumAge:15000};
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      const {latitude:lat,longitude:lon,accuracy} = pos.coords;
+      document.getElementById('coords').value=`${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+      const link=`https://maps.google.com/?q=${lat},${lon}`;
+      status.innerHTML=`Location set (±${Math.round(accuracy)} m). <a class="maplink" href="${link}" target="_blank" rel="noopener">Open map ↗</a>`;
+    },
+    err=>{
+      status.textContent='Could not detect location. Please allow permission and try again.';
+      console.warn(err);
+    },
+    opts
+  );
+}
+document.getElementById('detectBtn').addEventListener('click',detectLocation);
+
+/* =======  FORM HANDLING  ======= */
+document.getElementById('clearForm').addEventListener('click',()=>{
+  document.getElementById('sosForm').reset();
+  document.getElementById('locStatus').textContent='';
+});
+
+document.getElementById('sosForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=document.getElementById('name').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  const message=document.getElementById('message').value.trim();
+  const coords=document.getElementById('coords').value.trim();
+
+  if(!/^\d{10}$/.test(phone)){
+    alert('Phone number must be exactly 10 digits.');return;
+  }
+  if(!coords){
+    alert('Please detect your location first.');return;
+  }
+
+  // AI Analysis
+  const analysis = analyzeRequest(message);
+
+  const sos={
+    id:Date.now(),
+    name,phone,message,coords,
+    createdAt:new Date().toISOString(),
+    resolved:false,resolvedAt:null,
+    priority: analysis.priority,
+    category: analysis.category,
+    priorityScore: analysis.score
+  };
+
+  if (isOnline) {
+    // Send immediately if online
+    sosRequests.unshift(sos);
+    save(sosRequests);
+    alert('🚨  SOS submitted successfully!');
+  } else {
+    // Queue if offline
+    requestQueue.push(sos);
+    saveQueue(requestQueue);
+    alert('📡 SOS queued! Will be sent when connection returns.');
+    updateConnectionStatus();
+  }
+
+  e.target.reset();
+  document.getElementById('locStatus').textContent='';
+});
+
+/* =======  RESCUER  ======= */
+function renderLists(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const categoryFilter = document.getElementById('categoryFilter').value;
+  const priorityFilter = document.getElementById('priorityFilter').value;
+  
+  const filtered=sosRequests.filter(r=>{
+    const hay=`${r.name} ${r.coords} ${r.message}`.toLowerCase();
+    const matchesSearch = hay.includes(q);
+    const matchesCategory = !categoryFilter || r.category === categoryFilter;
+    const matchesPriority = !priorityFilter || r.priority === priorityFilter;
+    return matchesSearch && matchesCategory && matchesPriority;
+  });
+
+  // Sort pending by priority score (higher first)
+  const pending = filtered.filter(r=>!r.resolved)
+    .sort((a, b) => (b.priorityScore || 0) - (a.priorityScore || 0));
+  const resolved = filtered.filter(r=>r.resolved);
+
+  // KPIs
+  const criticalCount = sosRequests.filter(r => !r.resolved && r.priority === 'critical').length;
+  document.getElementById('kpiTotal').textContent=sosRequests.length;
+  document.getElementById('kpiPending').textContent=pending.length;
+  document.getElementById('kpiResolved').textContent=resolved.length;
+  document.getElementById('kpiCritical').textContent=criticalCount;
+
+  paintList('pendingList',pending,false);
+  paintList('resolvedList',resolved,true);
+}
+
+function paintList(id,arr,isResolved){
+  const host=document.getElementById(id);
+  host.innerHTML='';
+  if(!arr.length){
+    host.innerHTML=`<div class="empty">${isResolved?'No resolved requests yet.':'No pending requests.'}</div>`;
+    return;
+  }
+  arr.forEach(r=>{
+    const div=document.createElement('div');
+    div.className = `item ${r.priority || 'low'}`;
+    
+    const when=new Date(r.createdAt).toLocaleString();
+    const map=r.coords?`<a class="maplink" href="https://maps.google.com/?q=${encodeURIComponent(r.coords)}" target="_blank" rel="noopener">Map ↗</a>`:'';
+    const priorityIcon = getPriorityIcon(r.priority || 'low');
+    const categoryIcon = getCategoryIcon(r.category || 'other');
+
+    div.innerHTML=`
+      <div class="priority-indicator ${r.priority || 'low'}"></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px">
+        <strong>${escapeHtml(r.name)}</strong>
+        <span class="badge ${isResolved?'ok':'pending'}">${isResolved?'Resolved ✅':'Pending ⏳'}</span>
+      </div>
+      <div class="meta">
+        <span class="badge ${r.priority || 'low'}">${priorityIcon} ${(r.priority || 'low').toUpperCase()}</span>
+        <span class="badge ${r.category || 'other'}">${categoryIcon} ${(r.category || 'other').toUpperCase()}</span>
+        <span class="badge">${when}</span>
+        <span class="badge">${escapeHtml(r.coords)}</span>
+        ${map}
+      </div>
+      <p style="margin:10px 0">${escapeHtml(r.message)}</p>
+      <div class="muted">📞 ${escapeHtml(r.phone)}</div>
+      <div class="actions" style="margin-top:8px">
+        ${isResolved
+          ?`<button class="btn warn" onclick="markUnresolved(${r.id})">Mark Unresolved</button>`
+          :`<button class="btn ok" onclick="markResolved(${r.id})">Mark Resolved</button>`}
+        <button class="btn" onclick="removeReq(${r.id})">Delete</button>
+      </div>`;
+    host.appendChild(div);
+  });
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+
+function markResolved(id){
+  sosRequests=sosRequests.map(r=>r.id===id?{...r,resolved:true,resolvedAt:new Date().toISOString()}:r);
+  save(sosRequests);
+  renderLists();
+}
+
+function markUnresolved(id){
+  sosRequests=sosRequests.map(r=>r.id===id?{...r,resolved:false,resolvedAt:null}:r);
+  save(sosRequests);
+  renderLists();
+}
+
+function removeReq(id){
+  if(confirm('Delete this request?')){
+    sosRequests=sosRequests.filter(r=>r.id!==id);
+    save(sosRequests);
+    renderLists();
+  }
+}
+
+// Event listeners for filters
+document.getElementById('search').addEventListener('input',renderLists);
+document.getElementById('categoryFilter').addEventListener('change',renderLists);
+document.getElementById('priorityFilter').addEventListener('change',renderLists);
+document.getElementById('resetSearch').addEventListener('click',()=>{
+  document.getElementById('search').value='';
+  document.getElementById('categoryFilter').value='';
+  document.getElementById('priorityFilter').value='';
+  renderLists();
+});
+
+// Periodic sync check (every 5 seconds)
+setInterval(() => {
+  if (isOnline && requestQueue.length > 0) {
+    syncQueue();
+  }
+}, 5000);
+</script>
+</body>
+</html>
