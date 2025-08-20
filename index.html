@@ -868,11 +868,10 @@ document.getElementById('sosForm').addEventListener('submit',e=>{
   };
 
   if (isOnline && analysis.priority !== 'spam') {
-    sosRequests.unshift(sos);
-    save(sosRequests);
-    broadcastSync();
-    showSyncNotification('🚨 SOS sent and synced to all rescuer devices!');
-    alert('🚨 SOS submitted successfully!');
+   await saveSOSToCloud(sos);   // new function we added in Firebase block
+   showSyncNotification(' SOS sent!');
+   alert(' SOS submitted successfully!');
+
   } else if (analysis.priority === 'spam') {
     sosRequests.unshift(sos);
     save(sosRequests);
