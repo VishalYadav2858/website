@@ -24,6 +24,7 @@
   --high:#ea580c;        /* orange-600 */
   --medium:#ca8a04;      /* yellow-600 */
   --low:#16a34a;         /* green-600  */
+  --minimal:#2563eb;     /* blue-600   */
 }
 /* ==========  RESET  ========== */
 *{box-sizing:border-box;margin:0}
@@ -102,10 +103,13 @@ main{
 .form{display:grid;gap:14px}
 .row{display:grid;gap:12px}
 @media(min-width:640px){.row{grid-template-columns:1fr 1fr}}
+@media(min-width:768px){.row.three{grid-template-columns:1fr 1fr 1fr}}
 input,textarea{
   background:#0b1226;color:#e5e7eb;
   border:1px solid #243041;border-radius:12px;
-  padding:12px;outline:none
+  padding:12px;outline:none;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  font-size:14px;
 }
 input:focus,textarea:focus{box-shadow:var(--ring);border-color:#334155}
 textarea{min-height:110px;resize:vertical}
@@ -113,12 +117,15 @@ textarea{min-height:110px;resize:vertical}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 .btn{
   border:1px solid #243041;background:#0b1226;color:#e5e7eb;
-  padding:10px 14px;border-radius:12px;cursor:pointer
+  padding:10px 14px;border-radius:12px;cursor:pointer;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  font-size:14px;
 }
 .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand-dark));border-color:transparent}
 .btn.ok{background:linear-gradient(135deg,#16a34a,#15803d);border-color:transparent}
 .btn.warn{background:linear-gradient(135deg,#f59e0b,#d97706);border-color:transparent}
 .btn.ghost{background:transparent}
+.btn.danger{background:linear-gradient(135deg,#dc2626,#b91c1c);border-color:transparent}
 
 .muted{color:var(--muted)}
 
@@ -143,6 +150,8 @@ textarea{min-height:110px;resize:vertical}
 .item.high{border-color:var(--high);border-width:2px;}
 .item.medium{border-color:var(--medium);}
 .item.low{border-color:var(--low);}
+.item.minimal{border-color:var(--minimal);}
+.item.spam{border-color:#6b7280;opacity:0.7;border-style:dashed;}
 
 .meta{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#cbd5e1}
 .badge{padding:3px 8px;border-radius:999px;border:1px solid #334155;background:#0b1226}
@@ -154,6 +163,8 @@ textarea{min-height:110px;resize:vertical}
 .badge.high{border-color:var(--high);color:#fdba74;background:rgba(234,88,12,.1)}
 .badge.medium{border-color:var(--medium);color:#fde047;background:rgba(202,138,4,.1)}
 .badge.low{border-color:var(--low);color:#86efac;background:rgba(22,163,74,.1)}
+.badge.minimal{border-color:var(--minimal);color:#93c5fd;background:rgba(37,99,235,.1)}
+.badge.spam{border-color:#6b7280;color:#d1d5db;background:rgba(107,114,128,.1)}
 
 .badge.medical{border-color:#dc2626;color:#fca5a5;background:rgba(220,38,38,.1)}
 .badge.food{border-color:#16a34a;color:#86efac;background:rgba(22,163,74,.1)}
@@ -169,9 +180,22 @@ textarea{min-height:110px;resize:vertical}
 .priority-indicator.high{background:var(--high);}
 .priority-indicator.medium{background:var(--medium);}
 .priority-indicator.low{background:var(--low);}
+.priority-indicator.minimal{background:var(--minimal);}
 
 .maplink{font-size:12px}
 .empty{color:var(--muted);text-align:center;padding:18px}
+
+/* ==========  AI REASONING  ========== */
+.ai-reasoning{
+  background:rgba(37,99,235,.1);
+  border:1px solid #2563eb;
+  border-radius:8px;
+  padding:8px 10px;
+  margin:8px 0;
+  font-size:11px;
+  color:#93c5fd;
+}
+.ai-reasoning strong{color:#ddd6fe}
 
 /* ==========  QUEUE STATUS  ========== */
 .queue-status{
@@ -216,8 +240,9 @@ footer{padding:18px;text-align:center;color:#94a3b8}
       </div>
 
       <form id="sosForm" class="form" autocomplete="off" novalidate>
-        <div class="row">
+        <div class="row three">
           <input id="name" placeholder="Your name" required />
+          <input id="age" type="number" inputmode="numeric" placeholder="Age" required min="1" max="120" />
           <input id="phone" inputmode="tel" placeholder="10-digit phone" required
                  pattern="\\d{10}" minlength="10" maxlength="10" />
         </div>
@@ -249,6 +274,7 @@ footer{padding:18px;text-align:center;color:#94a3b8}
       <div class="searchbar" style="display:flex;gap:10px;margin:10px 0;flex-wrap:wrap">
         <input id="search" placeholder="Search by name, location or text…"/>
         <button class="btn" id="resetSearch">Reset</button>
+        <button class="btn danger" id="clearAll">🗑️ Clear All</button>
         <select id="categoryFilter" class="btn" style="background:#0b1226;border:1px solid #243041">
           <option value="">All Categories</option>
           <option value="medical">🏥 Medical</option>
@@ -263,12 +289,18 @@ footer{padding:18px;text-align:center;color:#94a3b8}
           <option value="high">🟠 High</option>
           <option value="medium">🟡 Medium</option>
           <option value="low">🟢 Low</option>
+          <option value="minimal">🔵 Minimal</option>
+        </select>
+        <select id="spamFilter" class="btn" style="background:#0b1226;border:1px solid #243041">
+          <option value="hide">Hide Spam</option>
+          <option value="show">Show All</option>
+          <option value="only">Spam Only</option>
         </select>
       </div>
 
       <div class="split">
         <div>
-          <h3 style="margin:6px 0 10px">Pending Requests <span style="color:var(--muted);font-size:12px;">(AI-sorted by priority)</span></h3>
+          <h3 style="margin:6px 0 10px">Pending Requests <span style="color:var(--muted);font-size:12px;">(Agentic AI – Sorted by Priority)</span></h3>
           <div id="pendingList" class="list"></div>
         </div>
 
@@ -283,13 +315,14 @@ footer{padding:18px;text-align:center;color:#94a3b8}
 </main>
 
 <footer>
-  <small>Enhanced with AI prioritization, auto-categorization, and offline resilience. Works on 2G/3G networks.</small>
+  <small>SOS Requests will be ranked by Agentic AI on factors such as Age, Severity, and Immediacy, with auto-categorization and offline resilience. Works on 2G/3G networks.</small>
 </footer>
 
 <script>
 /* =======  LOCAL-STORAGE HELPERS  ======= */
-const KEY = 'sos.requests.v4';
-const QUEUE_KEY = 'sos.queue.v4';
+const KEY = 'sos.requests.v5';
+const QUEUE_KEY = 'sos.queue.v5';
+const SYNC_KEY = 'sos.sync.v5';
 const load = () => JSON.parse(localStorage.getItem(KEY)||'[]');
 const save = arr => localStorage.setItem(KEY,JSON.stringify(arr));
 const loadQueue = () => JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');
@@ -297,42 +330,188 @@ const saveQueue = arr => localStorage.setItem(QUEUE_KEY,JSON.stringify(arr));
 
 let sosRequests = load();
 let requestQueue = loadQueue();
+let lastSyncTime = localStorage.getItem(SYNC_KEY) || '0';
 
-/* =======  AI CATEGORIZATION & PRIORITIZATION  ======= */
-const PRIORITY_KEYWORDS = {
-  critical: ['bleeding', 'blood', 'unconscious', 'not breathing', 'heart attack', 'stroke', 'overdose', 'severe pain', 'dying', 'death', 'emergency', 'urgent', 'help me', 'please help'],
-  high: ['child', 'children', 'baby', 'infant', 'elderly', 'disabled', 'pregnant', 'injury', 'injured', 'hurt', 'pain', 'medical', 'accident', 'trapped', 'fire', 'smoke'],
-  medium: ['sick', 'fever', 'lost', 'stranded', 'broken', 'stuck', 'need help', 'assistance'],
-  low: ['information', 'question', 'minor', 'small']
+/* =======  AGENTIC AI PRIORITIZATION SYSTEM  ======= */
+const SEVERITY_KEYWORDS = {
+  high: ['bleeding', 'blood', 'unconscious', 'not breathing', 'heart attack', 'stroke', 'overdose', 'severe pain', 'dying', 'death', 'critical', 'emergency', 'urgent', 'brain damage', 'broken bone', 'fracture', 'accident', 'fire', 'explosion'],
+  medium: ['pain', 'injury', 'hurt', 'sick', 'fever', 'medical', 'help', 'assistance', 'trapped', 'stuck'],
+  low: ['minor', 'small', 'question', 'information', 'lost', 'stranded']
 };
 
+const IMMEDIACY_KEYWORDS = {
+  critical: ['now', 'immediately', 'urgent', 'emergency', 'dying', 'critical', 'can\'t breathe', 'heart attack', 'stroke'],
+  moderate: ['soon', 'help', 'need', 'assistance', 'pain', 'hurt'],
+  low: ['later', 'when possible', 'information', 'question']
+};
+
+const VULNERABILITY_KEYWORDS = {
+  high: ['child', 'children', 'baby', 'infant', 'elderly', 'old', 'disabled', 'pregnant', 'wheelchair'],
+  medium: ['adult', 'person'],
+  low: ['minor concern', 'small issue']
+};
+
+const SPAM_KEYWORDS = ['test', 'testing', 'hello', 'hi', 'fake', 'joke', 'lol', 'haha', 'spam', 'ignore'];
+
 const CATEGORY_KEYWORDS = {
-  medical: ['bleeding', 'blood', 'injury', 'hurt', 'pain', 'sick', 'fever', 'unconscious', 'heart attack', 'stroke', 'overdose', 'medical', 'hospital', 'doctor', 'medicine', 'broken bone', 'fracture'],
+  medical: ['bleeding', 'blood', 'injury', 'hurt', 'pain', 'sick', 'fever', 'unconscious', 'heart attack', 'stroke', 'overdose', 'medical', 'hospital', 'doctor', 'medicine', 'broken bone', 'fracture', 'breathing'],
   food: ['hungry', 'food', 'water', 'thirsty', 'starving', 'drink', 'meal', 'eat', 'nutrition', 'supplies'],
   shelter: ['cold', 'hot', 'weather', 'roof', 'homeless', 'shelter', 'house', 'building', 'protection', 'warmth'],
   trapped: ['trapped', 'stuck', 'locked', 'can\'t move', 'debris', 'collapsed', 'cave', 'elevator', 'basement', 'underground'],
   other: []
 };
 
-function analyzeRequest(message) {
+function analyzeRequest(message, age, phone, name) {
   const text = message.toLowerCase();
-  let priority = 'low';
-  let category = 'other';
-  let score = 0;
+  
+  // Check for spam
+  const isSpam = SPAM_KEYWORDS.some(keyword => text.includes(keyword)) || 
+                 text.length < 10 || 
+                 /^(.)\1{4,}/.test(text); // Repeated characters
+  
+  if (isSpam) {
+    return {
+      priority: 'spam',
+      category: 'other',
+      score: 0,
+      reasoning: 'Flagged by AI: Potential spam or test message detected'
+    };
+  }
 
-  // Calculate priority score
-  for (const [level, keywords] of Object.entries(PRIORITY_KEYWORDS)) {
-    const matches = keywords.filter(keyword => text.includes(keyword)).length;
-    if (matches > 0) {
-      const levelScore = {critical: 4, high: 3, medium: 2, low: 1}[level] || 1;
-      if (levelScore > score) {
-        priority = level;
-        score = levelScore + matches; // More keyword matches = higher priority
+  // Factor 1: Severity (S) - Weight: 0.35
+  let severityScore = 0.1;
+  let severityReason = '';
+  for (const [level, keywords] of Object.entries(SEVERITY_KEYWORDS)) {
+    const matches = keywords.filter(keyword => text.includes(keyword));
+    if (matches.length > 0) {
+      if (level === 'high') {
+        severityScore = 1;
+        severityReason = `severe symptoms (${matches.slice(0,2).join(', ')})`;
+      } else if (level === 'medium' && severityScore < 0.5) {
+        severityScore = 0.5;
+        severityReason = `moderate symptoms (${matches.slice(0,2).join(', ')})`;
+      } else if (level === 'low' && severityScore < 0.2) {
+        severityScore = 0.1;
+        severityReason = 'minor symptoms';
       }
+      break;
     }
   }
 
+  // Factor 2: Immediacy (T) - Weight: 0.25
+  let immediacyScore = 0.1;
+  let immediacyReason = '';
+  for (const [level, keywords] of Object.entries(IMMEDIACY_KEYWORDS)) {
+    const matches = keywords.filter(keyword => text.includes(keyword));
+    if (matches.length > 0) {
+      if (level === 'critical') {
+        immediacyScore = 1;
+        immediacyReason = 'immediate action needed';
+      } else if (level === 'moderate' && immediacyScore < 0.5) {
+        immediacyScore = 0.5;
+        immediacyReason = 'timely response needed';
+      } else if (level === 'low' && immediacyScore < 0.2) {
+        immediacyScore = 0.1;
+        immediacyReason = 'non-urgent';
+      }
+      break;
+    }
+  }
+
+  // Factor 3: Vulnerability (V) - Weight: 0.15
+  let vulnerabilityScore = 0.5; // Default adult
+  let vulnerabilityReason = '';
+  
+  // Age-based vulnerability
+  if (age) {
+    const ageNum = parseInt(age);
+    if (ageNum <= 12) {
+      vulnerabilityScore = 1;
+      vulnerabilityReason = `child (age ${age})`;
+    } else if (ageNum >= 65) {
+      vulnerabilityScore = 1;
+      vulnerabilityReason = `elderly (age ${age})`;
+    } else {
+      vulnerabilityScore = 0.5;
+      vulnerabilityReason = `adult (age ${age})`;
+    }
+  }
+
+  // Keyword-based vulnerability
+  for (const [level, keywords] of Object.entries(VULNERABILITY_KEYWORDS)) {
+    const matches = keywords.filter(keyword => text.includes(keyword));
+    if (matches.length > 0) {
+      if (level === 'high') {
+        vulnerabilityScore = Math.max(vulnerabilityScore, 1);
+        vulnerabilityReason = vulnerabilityReason ? `${vulnerabilityReason}, vulnerable person` : 'vulnerable person';
+      }
+      break;
+    }
+  }
+
+  // Factor 4: Credibility (C) - Weight: 0.15
+  let credibilityScore = 1; // Default high confidence
+  let credibilityReason = 'verified contact info';
+  
+  if (!phone || phone.length !== 10) {
+    credibilityScore = 0.5;
+    credibilityReason = 'incomplete contact info';
+  }
+  if (!name || name.length < 2) {
+    credibilityScore = Math.min(credibilityScore, 0.5);
+    credibilityReason = 'incomplete personal info';
+  }
+
+  // Factor 5: Escalation History (E) - Weight: 0.10
+  let escalationScore = 0.5; // Default first-time
+  let escalationReason = 'first-time request';
+  
+  // Check for duplicate/similar requests
+  const similarRequests = sosRequests.filter(r => 
+    r.phone === phone || 
+    (r.name.toLowerCase() === name.toLowerCase() && Math.abs(new Date(r.createdAt) - new Date()) < 3600000)
+  );
+  
+  if (similarRequests.length > 0) {
+    const unresolvedCount = similarRequests.filter(r => !r.resolved).length;
+    if (unresolvedCount > 0) {
+      escalationScore = 1;
+      escalationReason = `${unresolvedCount} unresolved request(s)`;
+    } else {
+      escalationScore = 0.1;
+      escalationReason = 'previously resolved';
+    }
+  }
+
+  // Calculate weighted priority score
+  const priorityScore = 
+    0.35 * severityScore + 
+    0.25 * immediacyScore + 
+    0.15 * vulnerabilityScore + 
+    0.15 * credibilityScore + 
+    0.10 * escalationScore;
+
+  // Map score to priority level
+  let priority, priorityLabel;
+  if (priorityScore >= 0.8) {
+    priority = 'critical';
+    priorityLabel = 'Critical';
+  } else if (priorityScore >= 0.6) {
+    priority = 'high';
+    priorityLabel = 'High';
+  } else if (priorityScore >= 0.4) {
+    priority = 'medium';
+    priorityLabel = 'Medium';
+  } else if (priorityScore >= 0.2) {
+    priority = 'low';
+    priorityLabel = 'Low';
+  } else {
+    priority = 'minimal';
+    priorityLabel = 'Minimal';
+  }
+
   // Determine category
+  let category = 'other';
   let maxMatches = 0;
   for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
     if (cat === 'other') continue;
@@ -343,7 +522,22 @@ function analyzeRequest(message) {
     }
   }
 
-  return { priority, category, score };
+  // Generate reasoning
+  const reasoningParts = [];
+  if (severityReason) reasoningParts.push(severityReason);
+  if (vulnerabilityReason) reasoningParts.push(vulnerabilityReason);
+  if (immediacyReason) reasoningParts.push(immediacyReason);
+  if (escalationReason && escalationScore !== 0.5) reasoningParts.push(escalationReason);
+  if (credibilityScore < 1) reasoningParts.push(credibilityReason);
+
+  const reasoning = `${priorityLabel} Priority because: ${reasoningParts.join(', ')}.`;
+
+  return {
+    priority,
+    category,
+    score: Math.round(priorityScore * 100) / 100,
+    reasoning
+  };
 }
 
 function getCategoryIcon(category) {
@@ -362,7 +556,9 @@ function getPriorityIcon(priority) {
     critical: '🔴',
     high: '🟠',
     medium: '🟡',
-    low: '🟢'
+    low: '🟢',
+    minimal: '🔵',
+    spam: '🚫'
   };
   return icons[priority] || '🟢';
 }
@@ -398,11 +594,8 @@ async function syncQueue() {
   updateConnectionStatus();
   
   try {
-    // Process queued requests
     const processed = [];
     for (const queuedRequest of requestQueue) {
-      // In a real app, you'd send to a server here
-      // For this demo, we just add to local storage
       sosRequests.unshift(queuedRequest);
       processed.push(queuedRequest);
     }
@@ -411,9 +604,13 @@ async function syncQueue() {
       save(sosRequests);
       requestQueue = [];
       saveQueue(requestQueue);
+      lastSyncTime = Date.now().toString();
+      localStorage.setItem(SYNC_KEY, lastSyncTime);
       
-      // Show success notification
       alert(`✅ ${processed.length} queued request${processed.length > 1 ? 's' : ''} synced successfully!`);
+      
+      // Simulate real-time sync notification
+      broadcastSync();
     }
   } catch (error) {
     console.error('Sync failed:', error);
@@ -422,6 +619,25 @@ async function syncQueue() {
     updateConnectionStatus();
   }
 }
+
+function broadcastSync() {
+  // Simulate real-time sync across devices
+  localStorage.setItem(SYNC_KEY, Date.now().toString());
+  window.dispatchEvent(new StorageEvent('storage', {
+    key: KEY,
+    newValue: JSON.stringify(sosRequests)
+  }));
+}
+
+// Listen for real-time updates from other devices
+window.addEventListener('storage', (e) => {
+  if (e.key === KEY && e.newValue) {
+    sosRequests = JSON.parse(e.newValue);
+    if (document.getElementById('rescuer').hidden === false) {
+      renderLists();
+    }
+  }
+});
 
 // Connection event listeners
 window.addEventListener('online', () => {
@@ -435,7 +651,6 @@ window.addEventListener('offline', () => {
   updateConnectionStatus();
 });
 
-// Initialize connection status
 updateConnectionStatus();
 
 /* =======  TAB SWITCHING  ======= */
@@ -483,9 +698,20 @@ document.getElementById('clearForm').addEventListener('click',()=>{
   document.getElementById('locStatus').textContent='';
 });
 
+// Age input validation
+document.getElementById('age').addEventListener('input', (e) => {
+  const value = e.target.value;
+  if (value && (isNaN(value) || parseInt(value) < 1 || parseInt(value) > 120)) {
+    e.target.setCustomValidity('Please enter a valid age (1-120)');
+  } else {
+    e.target.setCustomValidity('');
+  }
+});
+
 document.getElementById('sosForm').addEventListener('submit',e=>{
   e.preventDefault();
   const name=document.getElementById('name').value.trim();
+  const age=document.getElementById('age').value.trim();
   const phone=document.getElementById('phone').value.trim();
   const message=document.getElementById('message').value.trim();
   const coords=document.getElementById('coords').value.trim();
@@ -493,30 +719,38 @@ document.getElementById('sosForm').addEventListener('submit',e=>{
   if(!/^\d{10}$/.test(phone)){
     alert('Phone number must be exactly 10 digits.');return;
   }
+  if(!age || isNaN(age) || parseInt(age) < 1 || parseInt(age) > 120){
+    alert('Please enter a valid age (1-120).');return;
+  }
   if(!coords){
     alert('Please detect your location first.');return;
   }
 
   // AI Analysis
-  const analysis = analyzeRequest(message);
+  const analysis = analyzeRequest(message, age, phone, name);
 
   const sos={
     id:Date.now(),
-    name,phone,message,coords,
+    name,age:parseInt(age),phone,message,coords,
     createdAt:new Date().toISOString(),
     resolved:false,resolvedAt:null,
     priority: analysis.priority,
     category: analysis.category,
-    priorityScore: analysis.score
+    priorityScore: analysis.score,
+    reasoning: analysis.reasoning
   };
 
-  if (isOnline) {
-    // Send immediately if online
+  if (isOnline && analysis.priority !== 'spam') {
     sosRequests.unshift(sos);
     save(sosRequests);
-    alert('🚨  SOS submitted successfully!');
+    broadcastSync();
+    alert('🚨 SOS submitted successfully!');
+  } else if (analysis.priority === 'spam') {
+    sosRequests.unshift(sos);
+    save(sosRequests);
+    broadcastSync();
+    alert('⚠️ Request submitted but flagged by AI for review.');
   } else {
-    // Queue if offline
     requestQueue.push(sos);
     saveQueue(requestQueue);
     alert('📡 SOS queued! Will be sent when connection returns.');
@@ -532,13 +766,19 @@ function renderLists(){
   const q=document.getElementById('search').value.toLowerCase();
   const categoryFilter = document.getElementById('categoryFilter').value;
   const priorityFilter = document.getElementById('priorityFilter').value;
+  const spamFilter = document.getElementById('spamFilter').value;
   
   const filtered=sosRequests.filter(r=>{
     const hay=`${r.name} ${r.coords} ${r.message}`.toLowerCase();
     const matchesSearch = hay.includes(q);
     const matchesCategory = !categoryFilter || r.category === categoryFilter;
     const matchesPriority = !priorityFilter || r.priority === priorityFilter;
-    return matchesSearch && matchesCategory && matchesPriority;
+    
+    let matchesSpam = true;
+    if (spamFilter === 'hide' && r.priority === 'spam') matchesSpam = false;
+    if (spamFilter === 'only' && r.priority !== 'spam') matchesSpam = false;
+    
+    return matchesSearch && matchesCategory && matchesPriority && matchesSpam;
   });
 
   // Sort pending by priority score (higher first)
@@ -548,7 +788,7 @@ function renderLists(){
 
   // KPIs
   const criticalCount = sosRequests.filter(r => !r.resolved && r.priority === 'critical').length;
-  document.getElementById('kpiTotal').textContent=sosRequests.length;
+  document.getElementById('kpiTotal').textContent=sosRequests.filter(r => r.priority !== 'spam').length;
   document.getElementById('kpiPending').textContent=pending.length;
   document.getElementById('kpiResolved').textContent=resolved.length;
   document.getElementById('kpiCritical').textContent=criticalCount;
@@ -576,7 +816,7 @@ function paintList(id,arr,isResolved){
     div.innerHTML=`
       <div class="priority-indicator ${r.priority || 'low'}"></div>
       <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px">
-        <strong>${escapeHtml(r.name)}</strong>
+        <strong>${escapeHtml(r.name)} (${r.age || 'N/A'})</strong>
         <span class="badge ${isResolved?'ok':'pending'}">${isResolved?'Resolved ✅':'Pending ⏳'}</span>
       </div>
       <div class="meta">
@@ -586,6 +826,7 @@ function paintList(id,arr,isResolved){
         <span class="badge">${escapeHtml(r.coords)}</span>
         ${map}
       </div>
+      ${r.reasoning ? `<div class="ai-reasoning"><strong>🤖 AI Analysis:</strong> ${escapeHtml(r.reasoning)}</div>` : ''}
       <p style="margin:10px 0">${escapeHtml(r.message)}</p>
       <div class="muted">📞 ${escapeHtml(r.phone)}</div>
       <div class="actions" style="margin-top:8px">
@@ -603,12 +844,14 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":
 function markResolved(id){
   sosRequests=sosRequests.map(r=>r.id===id?{...r,resolved:true,resolvedAt:new Date().toISOString()}:r);
   save(sosRequests);
+  broadcastSync();
   renderLists();
 }
 
 function markUnresolved(id){
   sosRequests=sosRequests.map(r=>r.id===id?{...r,resolved:false,resolvedAt:null}:r);
   save(sosRequests);
+  broadcastSync();
   renderLists();
 }
 
@@ -616,20 +859,36 @@ function removeReq(id){
   if(confirm('Delete this request?')){
     sosRequests=sosRequests.filter(r=>r.id!==id);
     save(sosRequests);
+    broadcastSync();
     renderLists();
   }
 }
 
-// Event listeners for filters
+function clearAllRequests(){
+  if(confirm('⚠️ This will permanently delete ALL SOS requests (pending and resolved). This action cannot be undone.\n\nAre you sure you want to continue?')){
+    sosRequests = [];
+    requestQueue = [];
+    save(sosRequests);
+    saveQueue(requestQueue);
+    broadcastSync();
+    renderLists();
+    alert('✅ All requests cleared successfully.');
+  }
+}
+
+// Event listeners for filters and controls
 document.getElementById('search').addEventListener('input',renderLists);
 document.getElementById('categoryFilter').addEventListener('change',renderLists);
 document.getElementById('priorityFilter').addEventListener('change',renderLists);
+document.getElementById('spamFilter').addEventListener('change',renderLists);
 document.getElementById('resetSearch').addEventListener('click',()=>{
   document.getElementById('search').value='';
   document.getElementById('categoryFilter').value='';
   document.getElementById('priorityFilter').value='';
+  document.getElementById('spamFilter').value='hide';
   renderLists();
 });
+document.getElementById('clearAll').addEventListener('click',clearAllRequests);
 
 // Periodic sync check (every 5 seconds)
 setInterval(() => {
