@@ -1037,5 +1037,66 @@ setInterval(() => {
   }
 }, 5000);
 </script>
+  <!-- Firebase Realtime Setup -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, enableIndexedDbPersistence,
+    collection, addDoc, doc, updateDoc, onSnapshot, serverTimestamp,
+    query, orderBy, limit
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // Your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyBJfNJsFwm-zXTlQ_u5iZ8S_siSfgHecnk",
+    authDomain: "sos-link-6222a.firebaseapp.com",
+    projectId: "sos-link-6222a",
+    storageBucket: "sos-link-6222a.firebasestorage.app",
+    messagingSenderId: "826161294821",
+    appId: "1:826161294821:web:ea7c871054c1f5027cd30c",
+    measurementId: "G-Q1JXVET87R"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  enableIndexedDbPersistence(db).catch(() => {});
+
+  // Live feed listener for Rescuers
+  window.startRescuerLiveFeed = function () {
+    const sosCol = collection(db, "sosRequests");
+    const q = query(sosCol, orderBy("createdAt", "desc"), limit(200));
+    onSnapshot(q, (snap) => {
+      sosRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!document.getElementById('rescuer').hidden) {
+        renderLists();
+        showSyncNotification(" Live updates synced");
+      }
+    });
+  };
+
+  // Save new SOS to Firestore
+  window.saveSOSToCloud = async function (sos) {
+    const sosCol = collection(db, "sosRequests");
+    const payload = {
+      ...sos,
+      createdAt: serverTimestamp(),
+      lastModified: Date.now()
+    };
+    const ref = await addDoc(sosCol, payload);
+    return ref.id;
+  };
+
+  // Mark SOS as resolved
+  window.resolveSOSInCloud = async function (id) {
+    const d = doc(db, "sosRequests", id);
+    await updateDoc(d, {
+      resolved: true,
+      resolvedAt: serverTimestamp(),
+      lastModified: Date.now()
+    });
+  };
+</script>
+
 </body>
 </html>
