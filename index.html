@@ -968,12 +968,14 @@ function paintList(id,arr,isResolved){
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 
-function markResolved(id){
-  sosRequests=sosRequests.map(r=>r.id===id?{...r,resolved:true,resolvedAt:new Date().toISOString()}:r);
-  save(sosRequests);
-  broadcastSync();
-  renderLists();
+async function markResolved(id) {
+  const ref = doc(db, "sosRequests", id);
+  await updateDoc(ref, {
+    resolved: true,
+    resolvedAt: new Date().toISOString()
+  });
 }
+
 
 function markUnresolved(id){
   sosRequests=sosRequests.map(r=>r.id===id?{...r,resolved:false,resolvedAt:null}:r);
