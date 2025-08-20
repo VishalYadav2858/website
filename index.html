@@ -868,10 +868,11 @@ document.getElementById('sosForm').addEventListener('submit',e=>{
   };
 
   if (isOnline && analysis.priority !== 'spam') {
-   await saveSOSToCloud(sos);   // new function we added in Firebase block
-   showSyncNotification(' SOS sent!');
-   alert(' SOS submitted successfully!');
-
+    sosRequests.unshift(sos);
+    save(sosRequests);
+    broadcastSync();
+    showSyncNotification('🚨 SOS sent and synced to all rescuer devices!');
+    alert('🚨 SOS submitted successfully!');
   } else if (analysis.priority === 'spam') {
     sosRequests.unshift(sos);
     save(sosRequests);
@@ -968,14 +969,12 @@ function paintList(id,arr,isResolved){
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 
-async function markResolved(id) {
-  const ref = doc(db, "sosRequests", id);
-  await updateDoc(ref, {
-    resolved: true,
-    resolvedAt: new Date().toISOString()
-  });
+function markResolved(id){
+  sosRequests=sosRequests.map(r=>r.id===id?{...r,resolved:true,resolvedAt:new Date().toISOString()}:r);
+  save(sosRequests);
+  broadcastSync();
+  renderLists();
 }
-
 
 function markUnresolved(id){
   sosRequests=sosRequests.map(r=>r.id===id?{...r,resolved:false,resolvedAt:null}:r);
@@ -1038,66 +1037,5 @@ setInterval(() => {
   }
 }, 5000);
 </script>
-  <!-- Firebase Realtime Setup -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    getFirestore, enableIndexedDbPersistence,
-    collection, addDoc, doc, updateDoc, onSnapshot, serverTimestamp,
-    query, orderBy, limit
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  // Your Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyBJfNJsFwm-zXTlQ_u5iZ8S_siSfgHecnk",
-    authDomain: "sos-link-6222a.firebaseapp.com",
-    projectId: "sos-link-6222a",
-    storageBucket: "sos-link-6222a.firebasestorage.app",
-    messagingSenderId: "826161294821",
-    appId: "1:826161294821:web:ea7c871054c1f5027cd30c",
-    measurementId: "G-Q1JXVET87R"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-
-  enableIndexedDbPersistence(db).catch(() => {});
-
-  // Live feed listener for Rescuers
-  window.startRescuerLiveFeed = function () {
-    const sosCol = collection(db, "sosRequests");
-    const q = query(sosCol, orderBy("createdAt", "desc"), limit(200));
-    onSnapshot(q, (snap) => {
-      sosRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (!document.getElementById('rescuer').hidden) {
-        renderLists();
-        showSyncNotification(" Live updates synced");
-      }
-    });
-  };
-
-  // Save new SOS to Firestore
-  window.saveSOSToCloud = async function (sos) {
-    const sosCol = collection(db, "sosRequests");
-    const payload = {
-      ...sos,
-      createdAt: serverTimestamp(),
-      lastModified: Date.now()
-    };
-    const ref = await addDoc(sosCol, payload);
-    return ref.id;
-  };
-
-  // Mark SOS as resolved
-  window.resolveSOSInCloud = async function (id) {
-    const d = doc(db, "sosRequests", id);
-    await updateDoc(d, {
-      resolved: true,
-      resolvedAt: serverTimestamp(),
-      lastModified: Date.now()
-    });
-  };
-</script>
-
 </body>
 </html>
